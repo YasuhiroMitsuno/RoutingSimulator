@@ -158,6 +158,10 @@ class Packet {
         setSource(addr2Bytes(addr));
     }
 
+    public byte[] getSource() {
+        return this.source;
+    }
+
     public void setDestination(byte[] destination) {
         this.destination = destination;
         this.bytes[16] = this.destination[0];
@@ -171,6 +175,11 @@ class Packet {
         setDestination(addr2Bytes(addr));
     }
 
+    public byte[] getDestination() {
+        return this.destination;
+    }
+    
+
     public void setData(byte[] data) {
         setLength(this.IHL * 4 + data.length);
         byte[] newBytes = new byte[this.length];
@@ -182,7 +191,7 @@ class Packet {
     public byte[] getData() {
         int len = this.bytes.length - this.IHL * 4;
         byte[] data = new byte[len];
-        System.arraycopy(bytes, 0, data, 0, len);
+        System.arraycopy(bytes, this.IHL * 4, data, 0, len);
         return data;
     }
 
@@ -207,7 +216,7 @@ class Packet {
     public int verifyChecksum() {
         long sum = 0;
         for (int i=0; i<this.IHL*2; i++) {
-            sum += (bytes[i*2] & 0xFF) << 8 | bytes[i*2+1] & 0xFF;;
+            sum += (bytes[i*2] & 0xFF) << 8 | bytes[i*2+1] & 0xFF;
         }
         while(sum >> 16 != 0) {
             sum = (sum & 0xFFFF) + (sum >> 16 & 0xFFFF);
@@ -215,6 +224,20 @@ class Packet {
         return ~(int)sum & 0xFFFF;
     }
 
+    public int getProtocol() {
+        return this.protocol;
+    }
+
+    public byte[] getBytes() {
+        return this.bytes;
+    }
+
+    public void D() {
+        for(int i=0;i<this.bytes.length; i++) {
+            System.out.print(String.format("%02x ", bytes[i]));
+        }
+    }
+    
     /* private methods */
 
     private void calcChecksum() {
