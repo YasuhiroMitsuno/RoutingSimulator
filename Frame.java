@@ -37,6 +37,12 @@ class Frame {
     private byte[] source;      /* Source Address */
     private int length;
 
+    public static Frame getHeader(Frame frame) {
+        byte[] bytes = new byte[14];
+        System.arraycopy(frame.getBytes(), 0, bytes, 0, 14);
+        return new Frame(bytes);
+    }
+    
     public Frame() {
         this.bytes = new byte[14];
     }

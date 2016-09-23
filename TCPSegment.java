@@ -50,8 +50,7 @@ class TCPSegment {
     }
 
     public TCPSegment(Packet packet) {
-        this.bytes = packet.getData();
-        _setBytes(this.bytes);
+        _setBytes(packet.getData());
         /* For pseudo header */
         pseudoSource = packet.getSource();
         pseudoDestination = packet.getDestination();

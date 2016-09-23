@@ -1,6 +1,6 @@
 import java.io.IOException;
 
-public class Hub extends Thread {
+public class Hub extends Device {
     protected Port[] ports;
     private int size;
 
@@ -27,8 +27,14 @@ public class Hub extends Thread {
                 if (frame == null) continue;
                 Packet p = new Packet(frame.getData());
                 System.out.println("CS: " + p.verifyChecksum());
-                System.out.println(p.description());                        
-                test(frame, i);                        
+                //System.out.println(p.description());
+		for (Frame f : Ethernet.makeFragment(frame)) {
+		    test(f, i);
+		}
+            }
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {
             }
         }
     }
@@ -38,7 +44,7 @@ public class Hub extends Thread {
         try {
             if (port.available() > 0) {
                 System.out.println("From Port " + i);
-                byte[] data = new byte[1024];
+                byte[] data = new byte[5000];
                 int len = 0;
                 int count = 0;
                 while (port.available() > 0) {
@@ -47,9 +53,10 @@ public class Hub extends Thread {
                 }
                 byte[] bytes = new byte[len];
                 System.arraycopy(data, 0, bytes, 0, len);
-                Frame f = new Frame(bytes);
-                System.out.println(f.description());
-                return f;
+		Frame frame = new Frame(bytes);
+		//		Ethernet.read(frame);
+                //	/               System.out.println(f.description());
+                return frame;
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());

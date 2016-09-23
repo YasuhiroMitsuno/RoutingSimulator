@@ -19,7 +19,7 @@ public class Switch extends Hub {
     
     protected void test(Frame frame, int index) {
         table[index] = frame.getSource();
-        showTable();        
+        showTable();
         byte[] data = frame.getBytes();
         /* search destination */
         boolean notExist = true;

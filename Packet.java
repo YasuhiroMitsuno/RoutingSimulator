@@ -38,13 +38,19 @@ class Packet {
     private int option;         /* Options */
     private int padding;        /* Padding */
 
+    public static Packet getHeader(Packet packet) {
+        byte[] bytes = new byte[20];
+        System.arraycopy(packet.getBytes(), 0, bytes, 0, 20);
+        return new Packet(bytes);
+    }
+    
     public Packet() {
         /* create minimum packet */
-        this.bytes = new byte[40];
+        this.bytes = new byte[20];
         setVersion(4);
         setIHL(5);
         setTOS(0x00);
-        setLength(40);
+        setLength(20);
         setId(0x0000);
         setFlags(0x00);
         setOffset(0);
@@ -55,6 +61,14 @@ class Packet {
     }
 
     public Packet(byte[] bytes) {
+	_setBytes(bytes);
+    }
+
+    public Packet(Frame frame) {
+	_setBytes(frame.getData());
+    }
+
+    private void _setBytes(byte[] bytes) {
         /* set binary value */
         this.bytes = bytes;
         /* set each parameter */
@@ -115,7 +129,7 @@ class Packet {
 
     public void setFlags(int flags) {
         this.flags = flags & 0x03;
-        this.bytes[6] = (byte)(this.flags << 5);
+        this.bytes[6] = (byte)(this.flags << 5 | (this.bytes[6] & 0x1F));
         calcChecksum();
     }
 
@@ -162,6 +176,14 @@ class Packet {
         return this.source;
     }
 
+    public int getFlags() {
+        return this.flags;
+    }
+
+    public int getOffset() {
+        return this.offset;
+    }
+
     public void setDestination(byte[] destination) {
         this.destination = destination;
         this.bytes[16] = this.destination[0];
@@ -206,7 +228,7 @@ class Packet {
         str += "\n\tFlags: " + String.format("0x%02x", this.flags);
         str += "\n\tFlagment Offset: " + this.offset;
         str += "\n\tTime to Live: " + this.TTL;
-        str += "\n\tProtocol: " + "XXX" + " (" + this.protocol + ")";
+        str += "\n\tProtocol: " + IPv4.Protocol.getName(this.protocol) + " (" + this.protocol + ")";
         str += "\n\tHeader Checksum: " + String.format("0x%04x", this.checksum);
         str += "\n\tSource Address: " + bytes2Addr(this.source);
         str += "\n\tDestination Address: " + bytes2Addr(this.destination);

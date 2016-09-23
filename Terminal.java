@@ -1,7 +1,7 @@
 import java.util.Random;
 import java.io.IOException;
 
-public class Terminal extends Thread {
+public class Terminal extends Device {
     private Port port;
     private String hostname;
     private byte[] MAC;
@@ -39,12 +39,16 @@ public class Terminal extends Thread {
         return port;
     }
 
+    public Port getPort(int index) {
+	return getPort();
+    }
+
     public void run() {
         while(true) {
             try {
                 if (port.available() > 0) {
                     System.out.println("TERMINAL " + hostname);
-                    byte[] data = new byte[1024];
+                    byte[] data = new byte[5000];
                     int len = 0;
                     int count = 0;
                     while (port.available() > 0) {
@@ -54,12 +58,14 @@ public class Terminal extends Thread {
                     byte[] bytes = new byte[len];
                     System.arraycopy(data, 0, bytes, 0, len);
                     Frame frame = new Frame(bytes);
-                    System.out.println(frame.description());
-                    Packet p = new Packet(frame.getData());
-                    System.out.println(p.description());
+		    Ethernet.read(frame);
                 }
             } catch (IOException e) {
                 System.out.println(e.getMessage());
+            }
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {
             }
         }
     }
