@@ -103,8 +103,17 @@ class Frame {
     }
 
     public void setData(byte[] data) {
-        setLength(14 + data.length);
-        byte[] newBytes = new byte[this.length];
+        if (data.length >= 1536) {
+            setLength(data.length);
+        } else {
+            setLength(14 + data.length);
+        }
+        byte[] newBytes;
+        if (this.length >= 1536) {
+            newBytes = new byte[14 + this.length];
+        } else {
+            newBytes = new byte[this.length];
+        }
         /* Copy Header */
         System.arraycopy(this.bytes, 0, newBytes, 0, 14);
         System.arraycopy(data, 0, newBytes, 14, data.length);
@@ -112,7 +121,12 @@ class Frame {
     }
 
     public byte[] getData() {
-        int len = this.length - 14;
+        int len;
+        if (this.length >= 1536) {
+            len = this.length;
+        } else {
+            len = this.length - 14;
+        }
         byte[] data = new byte[len];
         System.arraycopy(this.bytes, 14, data, 0, len);
         return data;
@@ -145,6 +159,10 @@ class Frame {
         this.length = length & 0xFFFF;
         this.bytes[12] = (byte)(this.length >> 8 & 0xFF);
         this.bytes[13] = (byte)(this.length & 0xFF);
+    }
+
+    public int getLength() {
+        return this.length;
     }
 
     private byte[] addr2Bytes(String addr) {

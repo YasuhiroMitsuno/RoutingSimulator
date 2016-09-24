@@ -4,9 +4,9 @@ public class Ethernet {
 	Packet packet = new Packet(frame);
 	IPv4.read(packet);
     }
-    public static Frame[] makeFragment(Frame frame) {
+    public static Frame[] makeFragment(Frame frame, int MTU) {
 	Packet packet = new Packet(frame);
-	Packet[] packets = IPv4.makeFragment(packet);
+	Packet[] packets = IPv4.makeFragment(packet, MTU - 14);
 
 	Frame[] frames = new Frame[packets.length];
 

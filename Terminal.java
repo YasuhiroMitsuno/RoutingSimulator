@@ -5,6 +5,7 @@ public class Terminal extends Device {
     private Port port;
     private String hostname;
     private byte[] MAC;
+    private Device device;
 
     public Terminal() {
         this.port = new Port();
@@ -39,40 +40,26 @@ public class Terminal extends Device {
         return port;
     }
 
+    public void connect(Device device) {
+        this.device = device;
+    }
+    
     public Port getPort(int index) {
 	return getPort();
     }
 
-    public void run() {
-        while(true) {
-            try {
-                if (port.available() > 0) {
-                    System.out.println("TERMINAL " + hostname);
-                    byte[] data = new byte[5000];
-                    int len = 0;
-                    int count = 0;
-                    while (port.available() > 0) {
-                        int b = port.read();
-                        data[len++] = (byte)b;
-                    }
-                    byte[] bytes = new byte[len];
-                    System.arraycopy(data, 0, bytes, 0, len);
-                    Frame frame = new Frame(bytes);
-		    Ethernet.read(frame);
-                }
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
-            try {
-                Thread.sleep(100);
-            } catch (Exception e) {
-            }
+    public void fetch(Frame frame) {
+        if (device != null) {
+            device.sendFrame(frame);
+        } else {
+            Ethernet.read(frame);
         }
     }
-
-    public void test(Frame frame) throws IOException {
+    
+    /*    public void test(Frame frame) throws IOException {
         frame.setSource(this.getMAC());
         byte[] data = frame.getBytes();
         port.write(data, 0, data.length);
     }
+    */
 }

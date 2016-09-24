@@ -3,12 +3,16 @@ import java.io.IOException;
 public class Hub extends Device {
     protected Port[] ports;
     private int size;
+    public int MTU;
 
+    private Device[] devices;
+    
     public Hub() {
         ports = new Port[8];
         for (int i=0;i<8;i++) {
             ports[i] = new Port();
         }
+        devices = new Device[8];
     }
     
     public void connect(Port _port, int _index) {
@@ -16,29 +20,40 @@ public class Hub extends Device {
         port.connect(_port);
     }
 
+    public void connect(Device device, int index) {
+        if (devices[index] != null) {
+            System.out.println("ERR-0001");
+        }
+        devices[index] = device;
+    }
+
     public Port getPort(int index) {
         return this.ports[index];
     }
 
-    public void run() {
-        while(true) {
-            for(int i=0;i<8;i++) {
-                Frame frame = fetch(i);
-                if (frame == null) continue;
-                Packet p = new Packet(frame.getData());
-                System.out.println("CS: " + p.verifyChecksum());
-                //System.out.println(p.description());
-		for (Frame f : Ethernet.makeFragment(frame)) {
-		    test(f, i);
-		}
-            }
-            try {
-                Thread.sleep(100);
-            } catch (Exception e) {
-            }
+    /*    public void sendFrame(Frame frame, Device except_device) {
+        for (Device device : devices) {
+            if (device == null || except_device == device) continue;
+            device.putFrame(frame);
         }
     }
-
+    */
+    public void fetch(Frame frame) {
+        //  Ethernet.read(frame);
+        if (frame.getLength() > MTU) {
+            System.out.println("MAKE FRAGMENT");
+            for (Frame f : Ethernet.makeFragment(frame, MTU)) {
+                queue.putFrame(f);
+            }
+            return;
+        }
+        for (Device device : devices) {
+            if (device == null) continue;
+            device.sendFrame(frame);
+        }
+    }
+    
+    /*
     protected Frame fetch(int i) {
         Port port = this.ports[i];
         try {
@@ -63,7 +78,7 @@ public class Hub extends Device {
         }
         return null;
     }
-
+    */
     protected void test(Frame frame, int index) {
         byte[] data = frame.getBytes();
         for(int i=0;i<8;i++) {

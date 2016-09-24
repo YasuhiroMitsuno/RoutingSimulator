@@ -16,59 +16,57 @@ public class Main {
         };
         Packet packet = new Packet(bytes);
 
-	packet.setData(new byte[813]);
-	//	packet.setData(bytes);
-
+        packet.setData(new byte[65535 - 20]);
+	System.out.println("CCCCC" + packet.getBytes().length);
+        IPv4.read(packet);
 	//        TCPSegment seg = new TCPSegment(packet);
-        try {
-            //Switch sw = new Switch();
-            Hub hub = new Hub();
-            Terminal t1 = new Terminal("localhost");
-            Terminal t2 = new Terminal("T2");
-            //sw.start();
-            //hub.start();
-            hub.start();
-            t1.start();
-            t2.start();
 
-            hub.connect(t1.getPort(), 0);
-            hub.connect(t2.getPort(), 1);
+        //Switch sw = new Switch();
+        Hub hub = new Hub();
+        Hub hub2 = new Hub();        
+        Terminal t1 = new Terminal("localhost");
+        Terminal t2 = new Terminal("T2");
+        //sw.start();
+        //hub.start();
+        hub.start();
+        hub2.start();
+        t1.start();
+        t2.start();
 
-            Frame frame = new Frame();
-            frame.setDestination(t1.getMAC());
-            frame.setSource(t2.getMAC());
-            frame.setData(packet.getBytes());
-            t2.test(frame);
-	    
-            try {
-                Thread.sleep(1000);
-            } catch (Exception e) {
-            }
-//            t1.test(frame);
-//            t3.test(frame);
-//            t2.test(frame);            
-            //            t1.test(frame.getBytes());
-            //            p2.write(data, 0, data.length);            
-            //            p.write(data, 0, data.length);
-//            sw.run();
-/*
-            while(p2.available() < 1) {
-                System.out.println("a");                
-            }
+        hub.connect(hub2, 0);
+        hub2.connect(t1, 0);
 
-            while(p2.available() > 0) {
-                System.out.println(p2.read());
-            }
-  */          
+        hub.MTU = 1400 + 34;
+        hub2.MTU = 1500 + 34;
+        Frame frame = new Frame();
+        frame.setDestination(t1.getMAC());
+        frame.setSource(t2.getMAC());
+        frame.setData(packet.getBytes());
+        t2.connect(hub);
+        
+        t2.sendFrame(frame);        
+        //            t1.test(frame);
+        //            t3.test(frame);
+        //            t2.test(frame);            
+        //            t1.test(frame.getBytes());
+        //            p2.write(data, 0, data.length);            
+        //            p.write(data, 0, data.length);
+        //            sw.run();
+        /*
+          while(p2.available() < 1) {
+          System.out.println("a");                
+          }
 
-//            while(true) {
-//                System.out.println(p2.read());
-//            }
+          while(p2.available() > 0) {
+          System.out.println(p2.read());
+          }
+        */          
 
-//            System.out.println(p3.read());
-//            System.out.println(p.read());
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
+        //            while(true) {
+        //                System.out.println(p2.read());
+        //            }
+
+        //            System.out.println(p3.read());
+        //            System.out.println(p.read());
     }
 }
