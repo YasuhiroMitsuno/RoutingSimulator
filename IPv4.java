@@ -64,23 +64,23 @@ public class IPv4 {
     static boolean[] bool;
     public static void restruct(Packet packet) {
 	if (buffer == null) {
-	    buffer = new byte[5000];
-	    bool = new boolean[5000];
+	    buffer = new byte[65536];
+	    bool = new boolean[8192];
 	}
 	if ((packet.getFlags() & 0x01) == 0) {
-	    int size = packet.getOffset() + packet.getData().length;
+	    int size = packet.getOffset() * 8 + packet.getData().length;
 	    byte[] newBuffer = new byte[size];
-	    boolean[] newBool = new boolean[size];
+	    boolean[] newBool = new boolean[(size+7)/8];
 	    System.arraycopy(buffer, 0, newBuffer, 0, size);
-	    System.arraycopy(bool, 0, newBool, 0, size);
+	    System.arraycopy(bool, 0, newBool, 0, (size+7)/ 8);
 	    buffer = newBuffer;
 	    bool = newBool;
 	}
 
 	int length = packet.getData().length;
 	int offset = packet.getOffset();
-	System.arraycopy(packet.getData(), 0, buffer, packet.getOffset(), length);
-	for (int i=0;i<length;i++) {
+	System.arraycopy(packet.getData(), 0, buffer, packet.getOffset() * 8, length);
+	for (int i=0;i<(length+7)/8;i++) {
 	    bool[offset + i] = true;
 	}
 	
@@ -99,36 +99,34 @@ public class IPv4 {
 	}
     }
 
-    private static int MTU = 80;
-
-    public static void setMTU(int _MTU) {
-        MTU = _MTU;
-    }
-    
-    public static Packet[] makeFragment(Packet packet) {
+    public static Packet[] makeFragment(Packet packet, int MTU) {
+        /* 8の倍数で計算する */
+        int PMTU = (MTU-20) - ((MTU-20) % 8);
         /* check enable IP Fragmentation */
         if ((packet.getFlags() & 0x02) > 0) {
             /* exception */
         }
 
         byte[] data = packet.getData();
+        /* 分割後の個数 */
+        int fsize = (data.length + PMTU - 1)/PMTU;
 
-        int fsize = (data.length + (MTU - 20) - 1)/(MTU - 20);
         Packet[] packets = new Packet[fsize];
         for(int i=0;i<fsize;i++) {
             Packet p = Packet.getHeader(packet);
             /*  */
-            p.setOffset(packet.getOffset() + (MTU - 20) * i);
-            int size;
+            int length;
             if (i < fsize-1) {
-                size = MTU - 20;
+                length = PMTU;
                 p.setFlags(p.getFlags() | 0x01);
             } else {
-                size = data.length - (fsize - 1) * (MTU - 20);
+                length = data.length - (fsize - 1) * PMTU;
                 p.setFlags(p.getFlags() | 0x00);
             }
-            byte[] tmp = new byte[size];
-            System.arraycopy(data, (MTU - 20) * i, tmp, 0, size);
+
+            byte[] tmp = new byte[length];
+            System.arraycopy(data, PMTU * i, tmp, 0, length);
+            p.setOffset(packet.getOffset() + (PMTU * i)/ 8);
             p.setData(tmp);
             packets[i] = p;
         }
