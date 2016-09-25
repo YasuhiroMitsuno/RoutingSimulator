@@ -6,7 +6,7 @@ public class Ethernet {
     }
     public static Frame[] makeFragment(Frame frame, int MTU) {
 	Packet packet = new Packet(frame);
-	Packet[] packets = IPv4.makeFragment(packet, MTU - 14);
+	Packet[] packets = IPv4.makeFragment(packet, MTU);
 
 	Frame[] frames = new Frame[packets.length];
 

@@ -40,16 +40,23 @@ public class Hub extends Device {
     */
     public void fetch(Frame frame) {
         //  Ethernet.read(frame);
-        if (frame.getLength() > MTU) {
+        System.out.println("GET HUB");
+        if (frame.getLength() > MTU + 18) {
             System.out.println("MAKE FRAGMENT");
             for (Frame f : Ethernet.makeFragment(frame, MTU)) {
-                queue.putFrame(f);
+                outputQueue.putFrame(f);
             }
             return;
+        } else {
+            outputQueue.putFrame(frame);
         }
+    }
+
+    public void output(Frame frame) {
+        System.out.println("IPForward");
         for (Device device : devices) {
             if (device == null) continue;
-            device.sendFrame(frame);
+            Device.send(device, frame);
         }
     }
     

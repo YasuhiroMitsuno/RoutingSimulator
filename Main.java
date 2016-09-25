@@ -17,6 +17,7 @@ public class Main {
         Packet packet = new Packet(bytes);
 
         packet.setData(new byte[65535 - 20]);
+        
 	System.out.println("CCCCC" + packet.getBytes().length);
         IPv4.read(packet);
 	//        TCPSegment seg = new TCPSegment(packet);
@@ -26,25 +27,29 @@ public class Main {
         Hub hub2 = new Hub();        
         Terminal t1 = new Terminal("localhost");
         Terminal t2 = new Terminal("T2");
+        t1.setName("T1");
+        t2.setName("T2");        
+        hub.setName("hub");
         //sw.start();
         //hub.start();
-        hub.start();
-        hub2.start();
-        t1.start();
-        t2.start();
 
-        hub.connect(hub2, 0);
-        hub2.connect(t1, 0);
+        hub.connect(t1, 0);
+        //        hub2.connect(t1, 0);
 
-        hub.MTU = 1400 + 34;
-        hub2.MTU = 1500 + 34;
+        hub.MTU = 1500;
+        hub2.MTU = 1500;
         Frame frame = new Frame();
         frame.setDestination(t1.getMAC());
         frame.setSource(t2.getMAC());
         frame.setData(packet.getBytes());
         t2.connect(hub);
         
-        t2.sendFrame(frame);        
+
+        for(int i=0;i<20;i++) {
+            t2.sendFrame(frame);
+        }
+
+        //        t2.sendFrame(frame);                
         //            t1.test(frame);
         //            t3.test(frame);
         //            t2.test(frame);            

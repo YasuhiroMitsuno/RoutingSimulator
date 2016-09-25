@@ -49,10 +49,13 @@ public class Terminal extends Device {
     }
 
     public void fetch(Frame frame) {
+        System.out.println("GET" + hostname);
+        //Ethernet.read(frame);
+    }
+
+    public void output(Frame frame) {
         if (device != null) {
-            device.sendFrame(frame);
-        } else {
-            Ethernet.read(frame);
+            Device.send(device, frame);
         }
     }
     
