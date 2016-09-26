@@ -3,7 +3,6 @@ import java.io.IOException;
 public class Hub extends Device {
     protected Port[] ports;
     private int size;
-    public int MTU;
 
     private Device[] devices;
     
@@ -39,17 +38,8 @@ public class Hub extends Device {
     }
     */
     public void fetch(Frame frame) {
+        outputQueue.put(frame);        
         //  Ethernet.read(frame);
-        System.out.println("GET HUB");
-        if (frame.getLength() > MTU + 18) {
-            System.out.println("MAKE FRAGMENT");
-            for (Frame f : Ethernet.makeFragment(frame, MTU)) {
-                outputQueue.putFrame(f);
-            }
-            return;
-        } else {
-            outputQueue.putFrame(frame);
-        }
     }
 
     public void output(Frame frame) {

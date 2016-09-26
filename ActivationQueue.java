@@ -1,25 +1,20 @@
-abstract class ActivationQueue  extends Thread {
-    protected static final int MAX_FRAME_SIZE = 30;
-    protected final Frame[] frameQueue;
+abstract class ActivationQueue<T>  extends Thread {
+    protected static final int MAX_SIZE = 30;
+    protected final Object[] queue;
     protected int tail;
     protected int head;
     protected int count;
-    protected Device delegate;
 
     public ActivationQueue() {
-        this.frameQueue = new Frame[MAX_FRAME_SIZE];
+        this.queue = new Object[MAX_SIZE];
         this.head = 0;
         this.tail = 0;
         this.count = 0;
     }
 
-    public void setDelegate(Device device) {
-        this.delegate = device;
-    }
-
     public void run() {
         while(true) {
-            fetch(takeFrame());
+            fetch(take());
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -27,53 +22,42 @@ abstract class ActivationQueue  extends Thread {
         }
     }
 
-    public abstract void fetch(Frame frame);
-
-    public synchronized void putFrame(Frame frame) {
-        //show();
-        //        System.out.println("PUT");
-        while (count >= frameQueue.length) {
+    public synchronized void put(T t) {
+        while (count >= queue.length) {
             try {
                 wait();
 	      } catch (InterruptedException e) {
             }
         }
-        frameQueue[tail] = frame;
-        tail = (tail + 1) % frameQueue.length;
+        queue[tail] = t;
+        tail = (tail + 1) % queue.length;
         count++;
         notifyAll();
     }
 
-    public synchronized void show() {
-        String str = "";
-        for(int i=0;i<MAX_FRAME_SIZE;i++) {
-            if (i<count) {
-                str += "■";
-            } else {
-                str += "□";
-            }
-        }
-        System.out.println(str + " " + delegate.getName());
-    }
-
-    public synchronized Frame takeFrame() {
-        //        show();
+    @SuppressWarnings("unchecked")
+    public synchronized T take() {
         while (count <= 0) {
             try {
                 wait();
             } catch (InterruptedException e) {
             }
         }
-        Frame frame  = frameQueue[head];
-        head = (head + 1) % frameQueue.length;
+        T t  = (T)queue[head];
+        head = (head + 1) % queue.length;
         count--;
         notifyAll();
-        return frame;
+        return t;
     }
+    
+    @SuppressWarnings("unchecked")
+    public T top() {
+        return (T)queue[head];
+    }
+
     public int size() {
         return count;
     }
-    public Frame topFrame() {
-        return frameQueue[head];
-    }
+
+    protected abstract void fetch(T t);
 }

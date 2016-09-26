@@ -48,7 +48,7 @@ public class Terminal extends Device {
 	return getPort();
     }
 
-    public void fetch(Frame frame) {
+    protected void fetch(Frame frame) {
         System.out.println("GET" + hostname);
         //Ethernet.read(frame);
     }
